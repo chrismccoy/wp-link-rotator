@@ -1,0 +1,9 @@
+{
+    "name": "chrismccoy/wp-link-rotator",
+    "description": "Link Rotator",
+    "license": "GPL",
+    "type": "project",
+    "require": {
+        "htmlburger/carbon-fields": "3.6.3"
+    }
+}

@@ -86,13 +86,13 @@ class WPLinkRotator {
 
     public function columns_content( string $column, int $post_id ): void {
         switch ( $column ) {
-            case 'wplinkrotator_url' :
+            case 'wplinkrotator_url':
                 $this->render_url_column($post_id);
                 break;
-            case 'wplinkrotator_target' :
+            case 'wplinkrotator_target':
                 $this->render_target_column($post_id);
                 break;
-            case 'wplinkrotator_weight' :
+            case 'wplinkrotator_weight':
                 $this->render_weight_column($post_id);
                 break;
         }
@@ -104,7 +104,7 @@ class WPLinkRotator {
     }
 
     private function render_target_column(int $post_id): void {
-        $urls  = carbon_get_post_meta($post_id, 'wplinkrotator_url_list');
+        $urls = carbon_get_post_meta($post_id, 'wplinkrotator_url_list');
 
         if (!is_array($urls)) {
             return;
@@ -118,7 +118,7 @@ class WPLinkRotator {
     }
 
     private function render_weight_column(int $post_id): void {
-        $urls  = carbon_get_post_meta($post_id, 'wplinkrotator_url_list');
+        $urls = carbon_get_post_meta($post_id, 'wplinkrotator_url_list');
 
         if (!is_array($urls)) {
             return;
@@ -131,20 +131,25 @@ class WPLinkRotator {
         echo implode("<br>", $weights);
     }
 
-    public function get_random_url(int $post_id): ?string {
+    public function get_random_weight_url($post_id): ?string {
         $urls = carbon_get_post_meta($post_id, 'wplinkrotator_url_list');
-        $randomValue = random_int(1, 100);
+        $totalWeight = array_sum(array_column($urls, 'wplinkrotator_url_weight'));
 
-        if (!is_array($urls)) {
-            return null;
+        if ($totalWeight === 0) {
+            return null; 
         }
 
+        $randomValue = random_int(1, $totalWeight);
+        $cumulativeWeight = 0;
+
         foreach ($urls as $url) {
-            if (($randomValue -= (int)$url['wplinkrotator_url_weight']) <= 0) {
+            $cumulativeWeight += (int)$url['wplinkrotator_url_weight'];
+            if ($randomValue <= $cumulativeWeight) {
                 return esc_url($url['wplinkrotator_url']);
             }
         }
-        return null;
+
+        return null; 
     }
 
     public function do_redirect(): void {
@@ -152,7 +157,7 @@ class WPLinkRotator {
             return;
         }
 
-        $random_url = $this->get_random_url(get_the_ID());
+        $random_url = $this->get_random_weight_url(get_the_ID());
 
         if (!empty($random_url)) {
             wp_redirect($random_url, 302);
@@ -162,3 +167,4 @@ class WPLinkRotator {
 }
 
 new WPLinkRotator();
+
